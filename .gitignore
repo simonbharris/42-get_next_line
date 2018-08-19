@@ -1,3 +1,8 @@
+.gitignore
+
+# get_next_line exclusives
+main.c
+
 # Prerequisites
 *.d
 
@@ -50,5 +55,3 @@ modules.order
 Module.symvers
 Mkfile.old
 dkms.conf
-
-.gitignore
