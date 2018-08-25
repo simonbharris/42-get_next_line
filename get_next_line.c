@@ -12,6 +12,10 @@
 
 #include "get_next_line.h"
 
+/*
+** Pulls a '\n' delimited string from astr and stores it in line
+*/
+
 int ret_substring(char **astr, char **line)
 {
 	char *tmp;
@@ -45,22 +49,34 @@ int		get_next_line(const int fd, char **line)
 	buf = ft_memalloc(sizeof(char) * BUFF_SIZE + 1);
 	if (str == NULL)
 		str = "";
-	else if ((ret = ret_substring(&str, line)))
-		if (ret == 1)
-			ft_memdel((void **) &buf);
-	while (read(fd, buf, BUFF_SIZE) > 0)
+	if ((ret = ret_substring(&str, line)))
 	{
-		str = ft_strjoin(str, buf);
-		ft_strclr(buf);
-		if (ret_substring(&str, line))
-		{
-			free(tmp);
-			ft_memdel((void **) &buf);
-			return (1);
-		}
+		ft_memdel((void **)&buf);
+		return(1);
 	}
-	*line = str;
-	return (9);
+	else
+		while ((ret = read(fd, buf, BUFF_SIZE)) > 0 || ft_strcmp(str, "") != 0)
+		{
+			str = ft_strjoin(str, buf);
+			ft_strclr(buf);
+			if (ret_substring(&str, line))
+			{
+				if (tmp != str)
+					free(tmp);
+				ft_memdel((void **) &buf);
+				return (1);
+			}
+			else if (ret <= 0)
+			{
+				ft_memdel((void **) &buf);
+				if (ft_isempty(str))
+					return(0);
+				*line = ft_strdup(str);
+				ft_strclr(str);
+				return (1);
+			}
+		}
+	return (0);
 }
 
 /*
