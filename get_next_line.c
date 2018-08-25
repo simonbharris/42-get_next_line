@@ -16,17 +16,15 @@
 ** Pulls a '\n' delimited string from astr and stores it in line
 */
 
-int ret_substring(char **astr, char **line)
+static int ret_substring(char **astr, char **line)
 {
 	char *tmp;
 	char *chr;
-	int diff;
 
 	if ((chr = ft_strchr(*astr, (int) '\n')))
 	{
-		diff = chr - *astr;
-		*line = ft_strsub(*astr, 0, diff);
-		tmp = ft_strdup((*astr + diff + 1));
+		*line = ft_strsub(*astr, 0, chr - *astr);
+		tmp = ft_strdup(chr + 1);
 		free(*astr);
 		*astr = tmp;
 		return(1);
@@ -34,49 +32,43 @@ int ret_substring(char **astr, char **line)
 	return(0);
 }
 
-
 int		get_next_line(const int fd, char **line)
 {
-	static char *str;
+	static char *str = NULL;
 	char *buf;
-	int res;
 	int ret;
 	char *tmp;
 
-	tmp = &(*str);
 	if (fd < 0 || !line)
 		return(-1);
 	buf = ft_memalloc(sizeof(char) * BUFF_SIZE + 1);
 	if (str == NULL)
-		str = "";
-	if ((ret = ret_substring(&str, line)))
+		str = ft_strdup("");
+	if (!(ret = ret_substring(&str, line)))
 	{
-		ft_memdel((void **)&buf);
-		return(1);
-	}
-	else
+		ret = 0;
 		while ((ret = read(fd, buf, BUFF_SIZE)) > 0 || ft_strcmp(str, "") != 0)
 		{
-			str = ft_strjoin(str, buf);
+			tmp = ft_strdup(str);
+			ft_memdel((void **)&str);
+			str = ft_strjoin(tmp, buf);
+			ft_memdel((void **)&tmp);
 			ft_strclr(buf);
-			if (ret_substring(&str, line))
-			{
-				if (tmp != str)
-					free(tmp);
-				ft_memdel((void **) &buf);
-				return (1);
-			}
+			if (ret_substring(&str, line) && (ret = 1))
+				break ;
 			else if (ret <= 0)
 			{
-				ft_memdel((void **) &buf);
-				if (ft_isempty(str))
-					return(0);
+				if (ft_isempty(str) && !(ret = 0))
+					break ;
 				*line = ft_strdup(str);
 				ft_strclr(str);
-				return (1);
+				ret = 1;
+				break ;
 			}
 		}
-	return (0);
+	}
+	ft_memdel((void **) &buf);
+	return (ret);
 }
 
 /*
