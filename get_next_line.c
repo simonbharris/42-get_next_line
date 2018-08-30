@@ -13,73 +13,95 @@
 #include "get_next_line.h"
 
 /*
+** ret_substring
 ** Pulls a '\n' delimited string from astr and stores it in line
+** returns 1 if '\n' was found, 0 otherwise.
 */
 
-static int ret_substring(char **astr, char **line)
+static int	ret_substring(char **astr, char **line)
 {
 	char *tmp;
 	char *chr;
 
-	if ((chr = ft_strchr(*astr, (int) '\n')))
+	if ((chr = ft_strchr(*astr, (int)'\n')))
 	{
 		*line = ft_strsub(*astr, 0, chr - *astr);
 		tmp = ft_strdup(chr + 1);
 		free(*astr);
 		*astr = tmp;
-		return(1);
+		return (1);
 	}
-	return(0);
-}
-
-int		get_next_line(const int fd, char **line)
-{
-	static char *str = NULL;
-	char *buf;
-	int ret;
-	char *tmp;
-
-	if (fd < 0 || !line)
-		return(-1);
-	buf = ft_memalloc(sizeof(char) * BUFF_SIZE + 1);
-	if (str == NULL)
-		str = ft_strdup("");
-	if (!(ret = ret_substring(&str, line)))
-	{
-		ret = 0;
-		while ((ret = read(fd, buf, BUFF_SIZE)) > 0 || ft_strcmp(str, "") != 0)
-		{
-			tmp = ft_strdup(str);
-			ft_memdel((void **)&str);
-			str = ft_strjoin(tmp, buf);
-			ft_memdel((void **)&tmp);
-			ft_strclr(buf);
-			if (ret_substring(&str, line) && (ret = 1))
-				break ;
-			else if (ret <= 0)
-			{
-				if (ft_isempty(str) && !(ret = 0))
-					break ;
-				*line = ft_strdup(str);
-				ft_strclr(str);
-				ret = 1;
-				break ;
-			}
-		}
-	}
-	ft_memdel((void **) &buf);
-	return (ret);
+	return (0);
 }
 
 /*
-
-* Store read information into a buffer
-* Check that buffer for a \n
-*  If no \n is found, amend the string onto a return value.
-*  If \n is found, return that line
-?		How to deal with values that remain?
-	?       Perhaps we can move the memory to the start, 
-	?       or shuffle the pinter forward until we hit a /0. If we hit a /0, then we can 
-	?		append that onto a new string
-
+** empty_buffer
+** Empties the rest of the buffer into str
+** 0 means nothing was emptied.
+** 1 means something was added.
 */
+
+int			empty_buffer(char *str, char **line)
+{
+	if (ft_isempty(str))
+		return (0);
+	*line = ft_strdup(str);
+	ft_strclr(str);
+	return (1);
+}
+
+/*
+** concat_str
+** Takes the existing stored string from the static str[fd] and
+** adds the buffer read onto it. dynamically reallocing the string
+** and managing the memory properly. Lastly, clears the buffer
+*/
+
+void		concat_str(char **str, char **buf)
+{
+	char *tmp;
+
+	tmp = ft_strdup(*str);
+	ft_memdel((void **)&(*str));
+	*str = ft_strjoin(tmp, *buf);
+	ft_memdel((void **)&tmp);
+	ft_strclr(*buf);
+}
+
+/*
+** get_next_line
+** Gets the next line read (as delimited by '\n' or EoF) from the filedes(fd)
+** Stores the output string into the address passed through into line.
+** Returns:
+** -1 (error)
+**  0 (no more to read)
+**  1 (string returned)
+*/
+
+int			get_next_line(const int fd, char **line)
+{
+	static char	*str[1024];
+	char		*buf;
+	int			ret;
+
+	if (fd < 0 || !line)
+		return (-1);
+	buf = ft_memalloc(sizeof(char) * BUFF_SIZE + 1);
+	if (str[fd] == NULL)
+		str[fd] = ft_strdup("");
+	if (!(ret = ret_substring(&str[fd], line)))
+	{
+		ret = 0;
+		while ((ret = read(fd, buf, BUFF_SIZE)) > 0
+		|| ft_strcmp(str[fd], "") != 0)
+		{
+			concat_str(&str[fd], &buf);
+			if (ret_substring(&str[fd], line) && (ret = 1))
+				break ;
+			else if (ret <= 0 && (ret = empty_buffer(str[fd], line) || 1))
+				break ;
+		}
+	}
+	ft_memdel((void **)&buf);
+	return (ret);
+}
