@@ -17,6 +17,11 @@
 
 # define BUFF_SIZE 32
 
-int		get_next_line(const int fd, char **line);
+typedef struct	s_file{
+	char		*data;
+	int			fd;
+}				t_file;
+
+int				get_next_line(const int fd, char **line);
 
 #endif

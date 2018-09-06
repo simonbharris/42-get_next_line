@@ -22,7 +22,9 @@ static int	ret_substring(char **astr, char **line)
 {
 	char *tmp;
 	char *chr;
-
+	
+	if (*astr == NULL)
+		return (0);
 	if ((chr = ft_strchr(*astr, (int)'\n')))
 	{
 		*line = ft_strsub(*astr, 0, chr - *astr);
@@ -44,10 +46,13 @@ static int	ret_substring(char **astr, char **line)
 int			empty_buffer(char *str, char **line)
 {
 	if (ft_isempty(str))
+	{
+		*line = ft_strdup("");
 		return (0);
+	}
 	*line = ft_strdup(str);
 	ft_strclr(str);
-	return (1);
+	return (0);
 }
 
 /*
@@ -61,11 +66,33 @@ void		concat_str(char **str, char **buf)
 {
 	char *tmp;
 
+	if (*str == NULL)
+		*str = ft_strdup("");
 	tmp = ft_strdup(*str);
 	ft_memdel((void **)&(*str));
-	*str = ft_strjoin(tmp, *buf);
+	*str = ft_strjoin(tmp, (char *)buf[0]);
 	ft_memdel((void **)&tmp);
 	ft_strclr(*buf);
+}
+
+t_file		*fetch_file(int fd, t_list **alist)
+{
+	t_list *tmp;
+	t_file *file;
+
+	tmp = *alist;
+	while (tmp)
+	{
+		if (((t_file *)tmp->content)->fd == fd)
+			return ((t_file *)tmp->content);
+		tmp = tmp->next;
+	}
+	file = (t_file *)malloc(sizeof(t_file));
+	file->fd = fd;
+	file->data = NULL;
+	ft_lstadd(alist, ft_lstnew((void *)file, sizeof(t_file)));
+	free(file);
+	return ((t_file *)(*alist)->content);
 }
 
 /*
@@ -80,28 +107,27 @@ void		concat_str(char **str, char **buf)
 
 int			get_next_line(const int fd, char **line)
 {
-	static char	*str[1024];
-	char		*buf;
-	int			ret;
+	static t_list	*flist;
+	char			*buf;
+	int				ret;
+	t_file			*file;
 
-	if (fd < 0 || !line)
+	buf = ft_memalloc(sizeof(char) * (BUFF_SIZE + 1));
+	if (fd < 0 || !line || read(fd, buf, 0))
 		return (-1);
-	buf = ft_memalloc(sizeof(char) * BUFF_SIZE + 1);
-	if (str[fd] == NULL)
-		str[fd] = ft_strdup("");
-	if (!(ret = ret_substring(&str[fd], line)))
-	{
-		ret = 0;
+	file = fetch_file(fd, &flist);
+	if (!(ret = ret_substring(&(file->data), line)))
 		while ((ret = read(fd, buf, BUFF_SIZE)) > 0
-		|| ft_strcmp(str[fd], "") != 0)
+		|| ft_strcmp(file->data, "") != 0)
 		{
-			concat_str(&str[fd], &buf);
-			if (ret_substring(&str[fd], line) && (ret = 1))
+			concat_str(&file->data, &buf);
+			if (ret_substring(&(file->data), line) && (ret = 1))
 				break ;
-			else if (ret <= 0 && (ret = empty_buffer(str[fd], line) || 1))
+			else if (ret <= 0 && (ret = empty_buffer(file->data, line) || 1))
+				break ;
+			if (ret == -1)
 				break ;
 		}
-	}
 	ft_memdel((void **)&buf);
 	return (ret);
 }
