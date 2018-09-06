@@ -22,7 +22,7 @@ static int	ret_substring(char **astr, char **line)
 {
 	char *tmp;
 	char *chr;
-	
+
 	if (*astr == NULL)
 		return (0);
 	if ((chr = ft_strchr(*astr, (int)'\n')))
