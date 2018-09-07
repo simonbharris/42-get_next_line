@@ -6,7 +6,7 @@
 /*   By: sharris <sharris@student.42.us.org>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/08/19 08:28:58 by sharris           #+#    #+#             */
-/*   Updated: 2018/09/07 15:53:54 by sharris          ###   ########.fr       */
+/*   Updated: 2018/09/07 15:59:42 by sharris          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,7 +18,7 @@
 ** returns 1 if '\n' was found, 0 otherwise.
 */
 
-static int	ret_substring(char **astr, char **line)
+static int			ret_substring(char **astr, char **line)
 {
 	char *tmp;
 	char *chr;
@@ -62,7 +62,7 @@ static int			empty_buffer(char *str, char **line)
 ** and managing the memory properly. Lastly, clears the buffer
 */
 
-static void		concat_str(char **str, char buf[])
+static void			concat_str(char **str, char buf[])
 {
 	char *tmp;
 
@@ -70,9 +70,9 @@ static void		concat_str(char **str, char buf[])
 		*str = ft_strdup("");
 	tmp = ft_strdup(*str);
 	ft_memdel((void **)&(*str));
-	*str = ft_strjoin(tmp, (char *) buf);
+	*str = ft_strjoin(tmp, (char *)buf);
 	ft_memdel((void **)&tmp);
-	ft_strclr((char *) buf);
+	ft_strclr((char *)buf);
 }
 
 static t_file		*fetch_file(int fd, t_list **alist)
@@ -105,7 +105,7 @@ static t_file		*fetch_file(int fd, t_list **alist)
 **  1 (string returned)
 */
 
-int			get_next_line(const int fd, char **line)
+int					get_next_line(const int fd, char **line)
 {
 	static t_list	*flist;
 	char			buf[BUFF_SIZE + 1];
