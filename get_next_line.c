@@ -6,7 +6,7 @@
 /*   By: sharris <sharris@student.42.us.org>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/08/19 08:28:58 by sharris           #+#    #+#             */
-/*   Updated: 2018/08/19 08:31:29 by sharris          ###   ########.fr       */
+/*   Updated: 2018/09/07 15:53:54 by sharris          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,7 +43,7 @@ static int	ret_substring(char **astr, char **line)
 ** 1 means something was added.
 */
 
-int			empty_buffer(char *str, char **line)
+static int			empty_buffer(char *str, char **line)
 {
 	if (ft_isempty(str))
 	{
@@ -62,7 +62,7 @@ int			empty_buffer(char *str, char **line)
 ** and managing the memory properly. Lastly, clears the buffer
 */
 
-void		concat_str(char **str, char **buf)
+static void		concat_str(char **str, char buf[])
 {
 	char *tmp;
 
@@ -70,12 +70,12 @@ void		concat_str(char **str, char **buf)
 		*str = ft_strdup("");
 	tmp = ft_strdup(*str);
 	ft_memdel((void **)&(*str));
-	*str = ft_strjoin(tmp, (char *)buf[0]);
+	*str = ft_strjoin(tmp, (char *) buf);
 	ft_memdel((void **)&tmp);
-	ft_strclr(*buf);
+	ft_strclr((char *) buf);
 }
 
-t_file		*fetch_file(int fd, t_list **alist)
+static t_file		*fetch_file(int fd, t_list **alist)
 {
 	t_list *tmp;
 	t_file *file;
@@ -108,11 +108,11 @@ t_file		*fetch_file(int fd, t_list **alist)
 int			get_next_line(const int fd, char **line)
 {
 	static t_list	*flist;
-	char			*buf;
+	char			buf[BUFF_SIZE + 1];
 	int				ret;
 	t_file			*file;
 
-	buf = ft_memalloc(sizeof(char) * (BUFF_SIZE + 1));
+	bzero(buf, BUFF_SIZE + 1);
 	if (fd < 0 || !line || read(fd, buf, 0))
 		return (-1);
 	file = fetch_file(fd, &flist);
@@ -120,7 +120,7 @@ int			get_next_line(const int fd, char **line)
 		while ((ret = read(fd, buf, BUFF_SIZE)) > 0
 		|| ft_strcmp(file->data, "") != 0)
 		{
-			concat_str(&file->data, &buf);
+			concat_str(&file->data, buf);
 			if (ret_substring(&(file->data), line) && (ret = 1))
 				break ;
 			else if (ret <= 0 && (ret = empty_buffer(file->data, line) || 1))
@@ -128,6 +128,5 @@ int			get_next_line(const int fd, char **line)
 			if (ret == -1)
 				break ;
 		}
-	ft_memdel((void **)&buf);
 	return (ret);
 }
