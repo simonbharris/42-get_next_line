@@ -6,7 +6,7 @@
 /*   By: sharris <sharris@student.42.us.org>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/08/19 08:28:58 by sharris           #+#    #+#             */
-/*   Updated: 2018/09/07 15:59:42 by sharris          ###   ########.fr       */
+/*   Updated: 2018/09/07 16:04:55 by sharris          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -74,6 +74,14 @@ static void			concat_str(char **str, char buf[])
 	ft_memdel((void **)&tmp);
 	ft_strclr((char *)buf);
 }
+
+/*
+** fetch_file
+** fetch_file will search a t_list containing content pointing to t_files
+** If a t_file matches the fd, passed into fetch_file, it will return that
+** t_file. Otherwise, it adds a new t_file/t_list to the front of the t_list
+** and returns that
+*/
 
 static t_file		*fetch_file(int fd, t_list **alist)
 {
